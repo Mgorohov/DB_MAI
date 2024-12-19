@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Мои приемы пищи{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Мои приемы пищи</h1>
+    <div class="mb-4 text-right">
+        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addFoodModal">
+            Добавить запись о приеме пищи
+        </button>
+    </div>
+    <div class="row">
+        {% if foods %}
+            {% for food in foods %}
+                <div class="col-md-4 mb-4">
+                    <div class="card hover-effect">
+                        <a href="{% url 'foods' food.id %}" class="stretched-link"></a>
+                        <div class="card-body">
+                            <h5 class="card-title">{{ food.title }}</h5>
+                            <p class="card-text">{{ food.description|truncatechars:100 }}</p>
+                            <p class="card-text">{{ food.calories }} кал.</p>
+                            <p class="card-text"><small class="text-muted">{{ food.created_at }}</small></p>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <h2>У вас нет записей о приемах пищи</h2>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Модальное окно -->
+<div class="modal fade" id="addFoodModal" tabindex="-1" aria-labelledby="addFoodModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addFoodModalLabel">Добавить запись о приеме пищи</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="foodForm" method="post" action="{% url 'foods' %}">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <button type="submit" class="btn btn-primary">Сохранить</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+
+<script>
+    $(document).ready(function() {
+        $('#foodForm').on('submit', function(event) {
+            event.preventDefault();
+            $.ajax({
+                url: $(this).attr('action'),
+                type: $(this).attr('method'),
+                data: $(this).serialize(),
+                success: function(response) {
+                    $('#addFoodModal').modal('hide');
+                    location.reload();
+                },
+                error: function(xhr, errmsg, err) {
+                    console.log(xhr.status + ": " + xhr.responseText);
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}
